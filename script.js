@@ -150,13 +150,15 @@ function buildCardEl(item, stackIdx) {
   card.dataset.stack = String(stackIdx);
   card.dataset.id = String(item.id);
 
+  // Portrait card: full-bleed poster behind, gradient overlay at bottom with
+  // title + meta. Synopsis is in the overlay too — hidden, fades in on hover.
   card.innerHTML = `
     <div class="movie-card__poster">
       <img src="${item.poster}" alt="${escapeHtml(item.title)} poster" loading="lazy" />
     </div>
-    <div class="movie-card__body">
-      <div class="movie-card__stamp movie-card__stamp--like">Like</div>
-      <div class="movie-card__stamp movie-card__stamp--nope">Skip</div>
+    <div class="movie-card__stamp movie-card__stamp--like">Like</div>
+    <div class="movie-card__stamp movie-card__stamp--nope">Skip</div>
+    <div class="movie-card__overlay">
       <h3 class="movie-card__title">
         ${escapeHtml(item.title)}
         <span class="movie-card__year">${item.year}</span>
@@ -345,24 +347,50 @@ function ottChip(name, title) {
   `;
 }
 
+function primaryWatchUrl(item) {
+  const primary = item.ott && item.ott[0];
+  if (primary && OTT_SERVICES[primary]) {
+    return {
+      url: OTT_SERVICES[primary].url.replace("{q}", encodeURIComponent(item.title)),
+      service: primary
+    };
+  }
+  // Fallback if no OTT info: Google search
+  return {
+    url: "https://www.google.com/search?q=" + encodeURIComponent(`watch ${item.title} online india`),
+    service: "Search"
+  };
+}
+
 function buildCompareCardEl(item, isWinner, allItems) {
   const card = document.createElement("div");
   card.className = "compare-card" + (isWinner ? " is-winner" : "");
 
-  // Niche labels (lookup from NICHES list)
   const nicheLabels = item.niches
     .map(k => NICHES.find(n => n.key === k)?.label)
     .filter(Boolean)
     .join(" · ");
 
+  const primary = primaryWatchUrl(item);
+
   card.innerHTML = `
     <div class="compare-card__poster">
       ${isWinner && allItems.length > 1 ? '<span class="winner-ribbon">Tonight’s pick</span>' : ""}
       <img src="${item.poster}" alt="${escapeHtml(item.title)} poster" loading="lazy" />
+      <a class="watch-now" href="${primary.url}" target="_blank" rel="noopener noreferrer"
+         aria-label="Watch ${escapeHtml(item.title)} on ${escapeHtml(primary.service)}">
+        <span class="watch-now__play">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+        <span class="watch-now__label">
+          Watch now
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7 17 17 7M7 7h10v10"/>
+          </svg>
+        </span>
+        <span class="watch-now__service">on ${escapeHtml(primary.service)}</span>
+      </a>
     </div>
-    ${isWinner && allItems.length > 1
-      ? `<p class="winner-why">Picked for ${escapeHtml(whyWinner(item, allItems))}.</p>`
-      : ""}
     <div class="compare-card__body">
       <h4 class="compare-card__title">${escapeHtml(item.title)}</h4>
       <p class="compare-card__niches">${escapeHtml(nicheLabels)} · ${item.year}</p>
@@ -377,7 +405,7 @@ function buildCompareCardEl(item, isWinner, allItems) {
         <span class="value">
           <span class="score-pair">
             <span class="score score--imdb">IMDb ★ ${item.imdb.toFixed(1)}</span>
-            <span class="score score--rt">RT ${item.rt}%</span>
+            <span class="score score--rt">Rotten Tomatoes ${item.rt}%</span>
           </span>
         </span>
       </div>

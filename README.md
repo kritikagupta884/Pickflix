@@ -61,6 +61,28 @@ About 30 seconds later you'll get a URL like `pickflix-yourname.vercel.app`. Eve
 
 In your Vercel project → Settings → Domains. Add your domain and follow the DNS instructions. SSL is automatic.
 
+## Updating your live site after the first deploy
+
+Every time you change a file (in your editor or the workspace folder), push the change to GitHub and Vercel auto-deploys within ~30 seconds. From the project folder in your terminal:
+
+```bash
+git add .
+git commit -m "describe what you changed"
+git push
+```
+
+That's it. Open your Vercel dashboard if you want to watch the build — it'll show a new deployment kicking off. Each deploy gets its own preview URL, and your main domain updates as soon as it's done.
+
+If something goes wrong:
+- Vercel → your project → **Deployments** tab — click the failing deployment to see logs
+- Most failures here would be HTML/JS syntax errors (since there's no build step) — open the browser console on the live site to see them
+- Rolling back is one click: any old deployment in the list has a "Promote to Production" option
+
+Common operations:
+- **Swap a poster URL or add a new title:** edit `data.js`, then `git add . && git commit -m "update catalog" && git push`
+- **Tweak a colour:** edit `:root` in `styles.css`, push
+- **Change copy:** edit `index.html`, push
+
 ## Customising
 
 ### Swap in your own titles
